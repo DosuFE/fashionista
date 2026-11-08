@@ -1,64 +1,55 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
-import { getHealth, type HealthResponse } from '@/services/health.service';
+import { useUsers } from '@/hooks/users/use-users';
 
 export default function Home() {
-  const [health, setHealth] = useState<HealthResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: users,
+    isLoading,
+    isError,
+    error,
+  } = useUsers();
 
-  useEffect(() => {
-    async function checkHealth() {
-      try {
-        const data = await getHealth();
+  if (isLoading) {
+    return <div>Loading users...</div>;
+  }
 
-        setHealth(data);
-      } catch {
-        setError('Unable to connect to the API.');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    checkHealth();
-  }, []);
+  if (isError) {
+    return (
+      <div>
+        Error: {error.message}
+      </div>
+    );
+  }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
-      <div className="w-full max-w-md rounded-xl border p-6 shadow-sm">
-        <h1 className="text-2xl font-bold">
-          Fashion Boutique API
-        </h1>
+    <main className="p-8">
+      <h1 className="mb-6 text-2xl font-bold">
+        Users
+      </h1>
 
-        {loading && (
-          <p className="mt-4 text-sm text-gray-500">
-            Checking API...
-          </p>
-        )}
-
-        {error && (
-          <p className="mt-4 text-sm text-red-500">
-            {error}
-          </p>
-        )}
-
-        {health && (
-          <div className="mt-6 space-y-2">
-            <p className="font-medium">
-              {health.message}
+      <div className="space-y-4">
+        {users?.map((user) => (
+          <div
+            key={user.id}
+            className="rounded-lg border p-4"
+          >
+            <p>
+              <strong>Name:</strong>{' '}
+              {user.firstName} {user.lastName}
             </p>
 
-            <p className="text-sm">
-              Status: {health.data.status}
+            <p>
+              <strong>Email:</strong>{' '}
+              {user.email}
             </p>
 
-            <p className="text-sm">
-              Status Code: {health.statusCode}
+            <p>
+              <strong>Role:</strong>{' '}
+              {user.role}
             </p>
           </div>
-        )}
+        ))}
       </div>
     </main>
   );
